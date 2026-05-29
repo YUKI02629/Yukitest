@@ -1,0 +1,127 @@
+!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест</title>
+
+<style>
+body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:Arial;
+    background:#0d0d0d;
+    color:white;
+}
+
+.box{
+    width:360px;
+    padding:25px;
+    border-radius:14px;
+    background:#161616;
+    border:1px solid #7a00ff;
+    text-align:center;
+}
+
+h2{
+    color:#b266ff;
+    margin-bottom:18px;
+    font-size:18px;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    color:white;
+    background:#7a00ff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2 id="q">Ты пойдёшь со мной играть?</h2>
+    <div id="btns"></div>
+</div>
+
+<script>
+let step = 0;
+
+const q = document.getElementById("q");
+const btns = document.getElementById("btns");
+
+function render(){
+    btns.innerHTML = "";
+
+    if(step === 0){
+        add("Да", ()=>{ step=1; render(); });
+        add("Нет", ()=>{ q.innerText="Попробуй ещё раз"; });
+    }
+
+    else if(step === 1){
+        q.innerText = "Во что играем?";
+        add("Minecraft", ()=>{ step=2; render(); });
+        add("Valorant", ()=>{ step=3; render(); });
+    }
+
+    else if(step === 2){
+        q.innerText = "С модами или без?";
+        add("С модами", ()=>finish("Minecraft с модами"));
+        add("Без модов", ()=>finish("Minecraft без модов"));
+    }
+
+    else if(step === 3){
+        q.innerText = "Дуо или пати?";
+        add("Дуо", ()=>finish("Valorant дуо"));
+        add("Пати", ()=>finish("Valorant пати"));
+    }
+}
+
+function add(text, fn){
+    const b=document.createElement("button");
+    b.innerText=text;
+    b.onclick=fn;
+    btns.appendChild(b);
+}
+
+function finish(text){
+    q.innerText = text;
+    btns.innerHTML = "";
+
+    const b=document.createElement("button");
+    b.innerText="Отправить результат";
+
+    b.onclick = () => {
+
+        const TOKEN = 8735361755:AAGT4mn6YhUlKTFMFUd7N-7X1cHilLtyAJM
+        const CHAT_ID = 7954831780
+
+        fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                chat_id: CHAT_ID,
+                text: "Результат теста: " + text
+            })
+        });
+
+        alert("Отправлено в Telegram");
+    };
+
+    btns.appendChild(b);
+}
+
+render();
+</script>
+
+</body>
+</html>
