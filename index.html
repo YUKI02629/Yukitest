@@ -26,15 +26,12 @@ body{
     text-align:center;
     box-shadow:0 0 25px rgba(0, 140, 255, 0.15),
                0 0 25px rgba(138,43,226,0.25);
-    animation: fadeIn 0.4s ease;
 }
 
 h2{
     color:#cbb6ff;
     margin-bottom:18px;
     font-size:18px;
-    transition:0.3s;
-    text-shadow:0 0 10px rgba(0,140,255,0.2);
 }
 
 button{
@@ -47,17 +44,14 @@ button{
     font-size:14px;
     color:white;
     background:linear-gradient(135deg,#6a5cff,#2f9bff);
-    transition:0.2s;
 }
 
-button:hover{
-    transform:scale(1.03);
-    filter:brightness(1.15);
-}
-
-@keyframes fadeIn{
-    from{opacity:0; transform:translateY(10px);}
-    to{opacity:1; transform:translateY(0);}
+input{
+    width:100%;
+    padding:10px;
+    margin:7px 0;
+    border-radius:10px;
+    border:none;
 }
 </style>
 </head>
@@ -65,12 +59,14 @@ button:hover{
 <body>
 
 <div class="box">
-    <h2 id="q">Ты пойдёшь со мной играть?</h2>
+    <h2 id="q">Как тебя зовут?</h2>
     <div id="btns"></div>
 </div>
 
 <script>
 let step = 0;
+let username = "";
+let mods = "";
 
 const q = document.getElementById("q");
 const btns = document.getElementById("btns");
@@ -79,23 +75,36 @@ function render(){
     btns.innerHTML = "";
 
     if(step === 0){
-        add("Да", ()=>{ step=1; render(); });
-        add("Нет", ()=>{ q.innerText="Попробуй ещё раз 🙂"; });
+        const input = document.createElement("input");
+        input.placeholder = "Имя...";
+        btns.appendChild(input);
+
+        add("Дальше", ()=>{
+            username = input.value || "Игрок";
+            step = 1;
+            render();
+        });
     }
 
     else if(step === 1){
-        q.innerText = "Во что играем?";
-        add("Minecraft", ()=>{ step=2; render(); });
-        add("Valorant", ()=>{ step=3; render(); });
+        q.innerText = "Ты пойдёшь со мной играть?";
+        add("Да", ()=>{ step=2; render(); });
+        add("Нет", ()=>{ q.innerText="Попробуй ещё раз 🙂"; });
     }
 
     else if(step === 2){
-        q.innerText = "С модами или без?";
-        add("С модами", ()=>finish("Minecraft с модами"));
-        add("Без модов", ()=>finish("Minecraft без модов"));
+        q.innerText = "Во что играем?";
+        add("Minecraft", ()=>{ step=3; render(); });
+        add("Valorant", ()=>{ step=5; render(); });
     }
 
     else if(step === 3){
+        q.innerText = "С модами или без?";
+        add("С модами", ()=>finishMods());
+        add("Без модов", ()=>finish("Minecraft без модов"));
+    }
+
+    else if(step === 5){
         q.innerText = "Дуо или пати?";
         add("Дуо", ()=>finish("Valorant дуо"));
         add("Пати", ()=>finish("Valorant пати"));
@@ -109,37 +118,73 @@ function add(text, fn){
     btns.appendChild(b);
 }
 
-function finish(text){
-    q.innerText = "Результат: " + text;
+function finishMods(){
+
+    q.innerText = "Какие моды хочешь?";
     btns.innerHTML = "";
 
-    const b=document.createElement("button");
-    b.innerText="Отправить результат";
+    const input = document.createElement("input");
+    input.placeholder = "Optifine, JEI, shaders...";
+    btns.appendChild(input);
 
-    b.onclick = async () => {
+    const b = document.createElement("button");
+    b.innerText = "Готово";
+
+    b.onclick = ()=>{
+        mods = input.value || "не указано";
+        finish("Minecraft с модами");
+    };
+
+    btns.appendChild(b);
+}
+
+function finish(text){
+    q.innerText = "Готово, " + username + ": " + text;
+    btns.innerHTML = "";
+
+    const send = document.createElement("button");
+    send.innerText = "Отправить в Telegram";
+
+    const restart = document.createElement("button");
+    restart.innerText = "Начать заново";
+
+    send.onclick = async () => {
 
         const TOKEN = "8735361755:AAGT4mn6YhUlKTFMFUd7N-7X1cHilLtyAJM";
         const CHAT_ID = "7954831780";
 
-        const message = "🎮 Результат теста: " + text;
+        const message =
+`🎮 Новый результат
+👤 Имя: ${username}
+📊 Результат: ${text}
+🧩 Моды: ${mods || "нет"}
+⏰ Время: ${new Date().toLocaleString()}`;
 
         try {
             await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-                method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body:JSON.stringify({
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({
                     chat_id: CHAT_ID,
                     text: message
                 })
             });
 
-            alert("Отправлено в Telegram ✔");
+            alert("Отправлено ✔");
         } catch (e) {
             alert("Ошибка отправки ❌");
         }
     };
 
-    btns.appendChild(b);
+    restart.onclick = ()=>{
+        step = 0;
+        username = "";
+        mods = "";
+        render();
+    };
+
+    btns.appendChild(send);
+    btns.appendChild(restart);
 }
 
 render();
