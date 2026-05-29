@@ -12,36 +12,52 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
-    font-family:Arial;
-    background:#0d0d0d;
+    font-family:Arial, sans-serif;
+    background: radial-gradient(circle at top, #0b1a3a, #0d0d0d);
     color:white;
 }
 
 .box{
     width:360px;
-    padding:25px;
-    border-radius:14px;
-    background:#161616;
-    border:1px solid #7a00ff;
+    padding:28px;
+    border-radius:18px;
+    background:rgba(20,20,35,0.95);
+    border:1px solid #6a5cff;
     text-align:center;
+    box-shadow:0 0 25px rgba(0, 140, 255, 0.15),
+               0 0 25px rgba(138,43,226,0.25);
+    animation: fadeIn 0.4s ease;
 }
 
 h2{
-    color:#b266ff;
+    color:#cbb6ff;
     margin-bottom:18px;
     font-size:18px;
+    transition:0.3s;
+    text-shadow:0 0 10px rgba(0,140,255,0.2);
 }
 
 button{
     width:100%;
-    padding:10px;
-    margin:6px 0;
+    padding:11px;
+    margin:7px 0;
     border:none;
-    border-radius:10px;
+    border-radius:12px;
     cursor:pointer;
     font-size:14px;
     color:white;
-    background:#7a00ff;
+    background:linear-gradient(135deg,#6a5cff,#2f9bff);
+    transition:0.2s;
+}
+
+button:hover{
+    transform:scale(1.03);
+    filter:brightness(1.15);
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
 }
 </style>
 </head>
@@ -64,7 +80,7 @@ function render(){
 
     if(step === 0){
         add("Да", ()=>{ step=1; render(); });
-        add("Нет", ()=>{ q.innerText="Попробуй ещё раз"; });
+        add("Нет", ()=>{ q.innerText="Попробуй ещё раз 🙂"; });
     }
 
     else if(step === 1){
@@ -94,27 +110,33 @@ function add(text, fn){
 }
 
 function finish(text){
-    q.innerText = text;
+    q.innerText = "Результат: " + text;
     btns.innerHTML = "";
 
     const b=document.createElement("button");
     b.innerText="Отправить результат";
 
-    b.onclick = () => {
+    b.onclick = async () => {
 
         const TOKEN = "8735361755:AAGT4mn6YhUlKTFMFUd7N-7X1cHilLtyAJM";
         const CHAT_ID = "7954831780";
 
-        fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-                chat_id: CHAT_ID,
-                text: "Результат теста: " + text
-            })
-        });
+        const message = "🎮 Результат теста: " + text;
 
-        alert("Отправлено в Telegram");
+        try {
+            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message
+                })
+            });
+
+            alert("Отправлено в Telegram ✔");
+        } catch (e) {
+            alert("Ошибка отправки ❌");
+        }
     };
 
     btns.appendChild(b);
